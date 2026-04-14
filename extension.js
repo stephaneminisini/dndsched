@@ -129,9 +129,9 @@ export default class DnDExtension extends Extension {
     }
 
     _enable_if_needed() {
-        // Snooze override: force DnD off while snooze is active
+        // Snooze override: force DnD on while snooze is active
         if (this._snooze_until !== null && Date.now() < this._snooze_until) {
-            this._set_dnd(false);
+            this._set_dnd(true);
             return;
         }
 
