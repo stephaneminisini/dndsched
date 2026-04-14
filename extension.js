@@ -120,17 +120,27 @@ export default class DnDExtension extends Extension {
     }
 
     _enable_if_needed() {
+        // Snooze override: force DnD off while snooze is active
+        if (this._snooze_until !== null && Date.now() < this._snooze_until) {
+            this._set_dnd(false);
+            return;
+        }
+
+        // Snooze just expired — clear it and update the tile
+        if (this._snooze_until !== null) {
+            this._snooze_until = null;
+            this._indicator?.sync();
+        }
 
         let time = this._get_time();
         let enable_time = this.__settings.get_int('enable-dnd-time-offset');
         let disable_time = this.__settings.get_int('disable-dnd-time-offset');
 
-        let dnd = ((enable_time < time && time < disable_time) || 
+        let dnd = ((enable_time < time && time < disable_time) ||
                   (enable_time > disable_time &&
-                  (time <= disable_time || time >= enable_time)))
-        
+                  (time <= disable_time || time >= enable_time)));
+
         this._set_dnd(dnd);
-        
     }
     
     _set_dnd(value) {
