@@ -25,6 +25,73 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
+const SNOOZE_DURATIONS = [
+    {label: '30 minutes', minutes: 30},
+    {label: '1 hour',     minutes: 60},
+    {label: '2 hours',    minutes: 120},
+    {label: '4 hours',    minutes: 240},
+];
+
+class DnDSnoozeIndicator extends SystemIndicator {
+
+    constructor(extension) {
+        super();
+        this._ext = extension;
+
+        this._toggle = new QuickMenuToggle({
+            title: 'Snooze DnD',
+            iconName: 'notifications-disabled-symbolic',
+        });
+        this._toggle.connect('clicked', this._onToggleClicked.bind(this));
+        this.quickSettingsItems.push(this._toggle);
+
+        this._buildMenu();
+    }
+
+    _buildMenu() {
+        for (const {label, minutes} of SNOOZE_DURATIONS) {
+            const item = new PopupMenu.PopupMenuItem(label);
+            item.connect('activate', () => this._activate(minutes));
+            this._toggle.menu.addMenuItem(item);
+        }
+
+        this._toggle.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        this._cancelItem = new PopupMenu.PopupMenuItem('Cancel snooze');
+        this._cancelItem.connect('activate', () => this._cancel());
+        this._toggle.menu.addMenuItem(this._cancelItem);
+
+        this.sync();
+    }
+
+    _activate(minutes) {
+        this._ext._snooze_until = Date.now() + minutes * 60 * 1000;
+        this._ext._enable_if_needed();
+        this.sync();
+    }
+
+    _cancel() {
+        this._ext._snooze_until = null;
+        this._ext._enable_if_needed();
+        this.sync();
+    }
+
+    _onToggleClicked() {
+        const snoozed = this._ext._snooze_until !== null &&
+                        Date.now() < this._ext._snooze_until;
+        if (snoozed)
+            this._cancel();
+        // else: no active snooze — ignore click, toggle stays unchecked
+    }
+
+    sync() {
+        const active = this._ext._snooze_until !== null &&
+                       Date.now() < this._ext._snooze_until;
+        this._toggle.checked = active;
+        this._cancelItem.visible = active;
+    }
+}
+
 export default class DnDExtension extends Extension {
 
     enable() {
