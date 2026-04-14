@@ -41,7 +41,7 @@ class DnDSnoozeIndicator extends SystemIndicator {
         this._ext = extension;
 
         this._toggle = new QuickMenuToggle({
-            title: 'Snooze DnD',
+            title: 'Snooze',
             iconName: 'notifications-disabled-symbolic',
         });
         this._toggle.connect('clicked', this._onToggleClicked.bind(this));
