@@ -95,23 +95,26 @@ class DnDSnoozeIndicator extends SystemIndicator {
 export default class DnDExtension extends Extension {
 
     enable() {
+        this._snooze_until = null;
 
         this.__notification_settings = new Gio.Settings({
-            schema_id: "org.gnome.desktop.notifications",
-        })
+            schema_id: 'org.gnome.desktop.notifications',
+        });
 
         this.__old_dnd = !this.__notification_settings.get_boolean('show-banners');
         this.__current_value = this.__old_dnd;
 
         this.__settings = this.getSettings('org.gnome.shell.extensions.dndsched');
 
+        this._indicator = new DnDSnoozeIndicator(this);
+        Main.panel.statusArea.quickSettings.addExternalIndicator(this._indicator);
+
         this._enable_if_needed();
-        
-        this. __check_tid = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 60, this._regular_check.bind(this));
+
+        this.__check_tid = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 60, this._regular_check.bind(this));
 
         this.__settings_enable_cid = this.__settings.connect('changed::enable-dnd-time-offset', this._enable_if_needed.bind(this));
         this.__settings_disable_cid = this.__settings.connect('changed::disable-dnd-time-offset', this._enable_if_needed.bind(this));
-
     }
 
     _regular_check() {
@@ -163,7 +166,6 @@ export default class DnDExtension extends Extension {
     }
 
     disable() {
-
         if (this.__settings_enable_cid) {
             this.__settings.disconnect(this.__settings_enable_cid);
             this.__settings_enable_cid = null;
@@ -175,14 +177,19 @@ export default class DnDExtension extends Extension {
         }
 
         this._cleanup();
-        
+
+        if (this._indicator) {
+            this._indicator.quickSettingsItems.forEach(item => item.destroy());
+            this._indicator.destroy();
+            this._indicator = null;
+        }
+
+        this._snooze_until = null;
+
         this._set_dnd(this.__old_dnd);
 
-        this.__dnd = null;
         this.__current_value = null;
-
         this.__settings = null;
         this.__notification_settings = null;
-        
     }
 }
