@@ -16,6 +16,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+import GObject from 'gi://GObject';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
@@ -32,6 +33,7 @@ const SNOOZE_DURATIONS = [
     {label: '4 hours',    minutes: 240},
 ];
 
+const DnDSnoozeIndicator = GObject.registerClass(
 class DnDSnoozeIndicator extends SystemIndicator {
 
     constructor(extension) {
@@ -90,7 +92,7 @@ class DnDSnoozeIndicator extends SystemIndicator {
         this._toggle.checked = active;
         this._cancelItem.visible = active;
     }
-}
+});
 
 export default class DnDExtension extends Extension {
 
