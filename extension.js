@@ -63,6 +63,10 @@ class DnDSnoozeIndicator extends SystemIndicator {
         this._cancelItem.connect('activate', () => this._cancel());
         this._toggle.menu.addMenuItem(this._cancelItem);
 
+        const settingsItem = new PopupMenu.PopupMenuItem('Schedule settings\u2026');
+        settingsItem.connect('activate', () => this._ext.openPreferences());
+        this._toggle.menu.addMenuItem(settingsItem);
+
         this.sync();
     }
 
